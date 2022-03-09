@@ -1,0 +1,63 @@
+body, html{
+    margin: 0;
+}
+
+#logo{
+    color: white;
+    font-weight: bold;
+    font-size: x-large;
+    position: absolute;
+    font-family: 'Ubuntu', sans-serif;
+    padding-top: 9px;
+    padding-left: 15px;
+}
+a, a:link, a:visited{
+	text-decoration: none;
+	color: inherit;
+}
+
+.pos-change{
+    color: green;
+}
+
+.neg-change{
+    color:red;
+}
+
+#navbar{
+    background-color: #6755f1;
+    display: flex;
+    margin-top: 0;
+    padding-top: 10px;
+    padding-bottom: 9px;
+    justify-content: flex-end;
+    font-family: 'Lato', sans-serif;
+}
+
+.navbar-item{
+    color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-right: 15px;
+}
+
+.notselected{
+    border-radius: 8px;
+    border: 1px solid #6755f1;
+    padding: 3px;
+}
+
+.selected{
+    border-radius: 8px;
+    border: 1px solid white;
+    padding: 3px;
+}
+
+.invis{
+	display:none;
+}
+
+.navbar-item a{
+    text-decoration: none;
+    color: inherit;
+}

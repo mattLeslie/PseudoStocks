@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://kit.fontawesome.com/bd3e3fed85.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Ubuntu:wght@700&display=swap" rel="stylesheet">    <link rel="stylesheet" type="text/css" href="css/base.css">
+    <link rel="stylesheet" type="text/css" href="css/login.css">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <meta name="google-signin-client_id" content="969138522096-buh5tauumdphp77eq4oidus51ft0qd3o.apps.googleusercontent.com">
+        
+    <title>SalStocks</title>
+</head>
+<body>
+    <span id="logo"><a id="homelink" href="index.html">PseudoStocks</a></span>
+    <div id="navbar">
+        <span class="navbar-item notselected"><a href="index.html">Home/Search</a></span>
+        <span class="navbar-item notselected loggedin invis"><a href="favorites.html">Favorites</a></span>
+        <span class="navbar-item notselected loggedin invis"><a href="portfolio.html">Portfolio</a></span>
+        <span class="navbar-item selected loggedout"><a href="login.html">Login/Sign Up</a></span>
+    </div>
+    <div id="container">
+        <div class="box">
+            <h2>Login</h2>
+            <form id="login-form" name="login-form" method="POST" onsubmit="login();return false">
+                <label for="login-uname">Username</label>
+                <input type="text" id="login-uname" required>
+                <label for="login-pass">Password</label>
+                <input type="password" id="login-pass" required>
+                <button type="submit" class="red-button"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+            </form>
+            <div class="divider"></div>
+            <div class="g-signin2" data-onsuccess="onSignIn"></div>
+            <div id="login-error"></div>
+        </div>
+        <div class="box">
+            <h2>Sign Up</h2>
+            <form id="register-form" name="register-form" method="POST">
+                <label for="signup-email">Email</label>
+           		<input id="email" type="email" name="email" pattern="[a-Z0-9._%+-]+@[a-Z0-9.-]+\.[a-Z]{2,}$" required>
+                <label for="signup-uname">Username</label>
+                <input type="text" id="signup-uname" required>
+                <label for="signup-pass">Password</label>
+                <input type="password" id="signup-pass" required>
+                <label for="signup-pass-confirm">Confirm Password</label>
+                <input type="password" id="signup-pass-confirm" required>
+                <div id="pw-notice"></div>
+                <div>
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms" class="smalltext">I have read and agree to all terms and conditions of SalStocks</label>    
+                </div>
+                <button type="submit" class="red-button"><i class="fas fa-user-plus"></i> Create Account</button>
+                <div id="register-error"></div>
+            </form>
+        </div>
+    </div>
+   
+    <script>
+    
+    let canRegister = true
+    
+    $("#signup-pass-confirm, #signup-pass").on("keyup", function(){
+    	let pw = $("#signup-pass").val() 
+    	let cpw = $("#signup-pass-confirm").val()
+    	
+    	if(pw == cpw){
+    		$("#pw-notice").html("")
+    		canRegister = true
+    	}
+    	else{
+    		$("#pw-notice").css("color", "red")
+    		$("#pw-notice").html("Passwords do not match.")
+    		canRegister = false
+    	}
+    	
+    })
+    
+    
+    
+    $("#register-form").on("submit", function(event){
+		event.preventDefault();
+		
+		if(!canRegister){
+			$("#register-error").html("Registration failed: passwords do not match.");
+		}
+		else{
+		
+		
+			let email = $("#email").val()
+			let username = $("#signup-uname").val()
+			let password = $("#signup-pass").val()
+			$.ajax({
+				method: "POST",
+				url: "RegisterServlet",
+				data: {
+					email: email,
+					username: username,
+					password: password
+				},
+				
+				error: function(error){
+					$("#register-error").html("Registration failed: credentials already in use.");
+				},
+				success: function(result){
+					$("#login-uname").val(username)
+					$("#login-pass").val(password)
+					$("#register-error").html("");
+					login()
+				}
+			})
+		}
+	});
+
+    function login(){
+		let username = $("#login-uname").val()
+		let password = $("#login-pass").val()
+		$.ajax({
+			method: "POST",
+			url: "LoginServlet",
+			data: {
+				type: "normal",
+				username: username,
+				password: password
+			},
+			error: function(error){
+				console.log(error)
+				$("#login-error").html("Login failed.")
+			},
+			success: function(result){
+				console.log(result)
+				window.location.href="index.html"
+			}
+		})
+    }
+    
+    function onSignIn(googleUser) {
+    	  var profile = googleUser.getBasicProfile();
+    	  var id_token = googleUser.getAuthResponse().id_token;
+    	  $.ajax({
+    		  method: "POST",
+    		  url: "LoginServlet",
+    		  data:{
+    			  type: "google",
+    			  email: profile.getEmail(),
+    			  token: id_token
+    		  },
+  			  error: function(error){
+			  	  console.log(error)
+				  $("#login-error").html("Login failed.")
+			  },
+			  success: function(result){
+				  console.log(result)
+				  window.location.href="index.html"
+			  }
+    	  })
+    }
+    
+    function logout(){
+		$.ajax({
+			method: "POST",
+			url: "LogoutServlet",
+			error: function(error){
+				console.log(error);
+			},
+			success: function(result){
+				signOut()
+			}
+		})
+    }
+    function signOut() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut().then(function () {
+          console.log('User signed out.');
+        });
+     }
+
+    </script>
+</body>
+</html>

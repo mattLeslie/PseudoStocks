@@ -1,0 +1,188 @@
+#title{
+    margin-top: 80px;
+    text-align: center;
+    font-family: 'Ubuntu', sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+#searchbar{
+    width: 55%;
+    margin-top: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+#search{
+    width: 100%;
+    border: 1px solid #6755f1;
+    border-right: none;
+    padding: 5px;
+    padding-left: 20px;
+    border-radius: 20px 0 0 20px;
+    outline: none;
+    color: #9DBFAF;
+    font-size: large;
+}
+
+#searchbar form{
+    width: 100%;
+    position: relative;
+    display: flex;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#search:focus{
+    color: #6755f1;
+}
+
+.icon{
+    width: 40px;
+    height: 50px;
+    border: 1px solid #6755f1;
+    border-left: none;
+    background:white;
+    text-align: center;
+    color: grey;
+    border-radius: 0 20px 20px 0;
+    cursor: pointer;
+    outline: none;
+    font-size: 20px;
+    padding-right: 35px;
+}
+
+#container{
+    margin-left: auto;
+    margin-right: auto;
+    width: 65%;
+}
+
+.market-status{
+	width: 40%;
+	margin-left:auto;
+	margin-right: auto;
+}
+#search-result{
+	display: none;
+}
+
+
+.ticker{
+	font-size: 30px;
+	font-weight: bold;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.stock-info {
+	margin-top: 30px;
+	text-align: center;
+}
+
+.detailed-info{
+	display:flex;
+	flex-direction: column;
+}
+
+.detail-row{
+	display: flex;
+	justify-content: space-between;
+	flex-direction: row;
+}
+
+.co-name{
+	font-family: 'Ubuntu', sans-serif;
+	color: grey;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.exchange{
+	margin-top: 10px;
+	font-size: 16px;
+	font-family: 'Ubuntu', sans-serif;
+}
+
+.divider{
+    font-family: 'Ubuntu', sans-serif;
+	color: grey;
+	text-align: center;
+	font-size: 15px;
+	margin-top: 25px;
+	padding-bottom: 12px;
+	margin-bottom: 25px;
+	border-bottom: 3px solid #6755f1;
+}
+
+#stock-details{
+	display:flex;
+	flex-direction: row;
+	justify-content: space-around;
+}
+
+#stock-details * {
+	font-family: 'Ubuntu', sans-serif;
+	font-size: medium;
+	text-align: left;
+}
+
+h3{
+	padding-top: 20px;
+	text-align: center;
+}
+
+#co-desc p{
+	margin: 5px;
+	text-align: left;
+}
+
+#error-message{
+	font-family: 'Ubuntu', sans-serif;
+	color:red;
+	text-align:center;
+	font-size: medium;
+	margin-top: 15px;
+}
+
+.buybox{
+	margin-top: 10px;
+	font-family: 'Ubuntu', sans-serif;
+	text-align: left;
+	margin-top: 20px;
+}
+
+.buybutton{
+	margin-top: 10px;
+	display:block;
+	color: white;
+	background-color: green;
+	border: none;
+	font-size: medium;
+	padding: 8px;
+	padding-left: 12px;
+	border-radius: 8px;
+	padding-right: 12px;
+}
+
+.last-price{
+	font-size: 30px;
+	color: black;
+	font-weight: bold;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.change{
+	font-family: 'Ubuntu', sans-serif;
+	color: grey;
+	font-size: 20px;
+	font-weight: bold;
+}
+
+.timestamp{
+	margin-top: 10px;
+	font-size: 16px;
+	font-family: 'Ubuntu', sans-serif;
+}

@@ -1,0 +1,78 @@
+#container{
+    width: 60%;
+    margin-left: auto;
+    margin-top: 20px;
+    margin-right: auto;
+}
+
+#title{
+	margin-top: 0;
+    text-align: left;
+    font-size: x-large;
+    font-weight: bold;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+#favorites-box{
+    display:flex;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-direction: column;
+}
+
+.info-box{
+    border: 1px solid lightgrey;
+    font-family: 'Ubuntu', sans-serif;
+    border-radius: 5px;
+    padding-top: 5px;
+    padding-right: 8px;
+    padding-left: 5px;
+}
+
+.ticker{
+	font-size: 25px;
+}
+
+.price{
+	font-size:25px;
+}
+
+.delete-holder{
+    position: relative;
+}
+.delete{
+    color: grey;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.row{
+    display:flex;
+    margin-top: 10px;
+    margin-bottom: 13px;
+    padding-left: 15px;
+    padding-right: 20px;
+    justify-content: space-between;
+}
+
+a{
+	margin-bottom: 15px;
+}
+
+.top {
+    font-size: larger;
+    font-weight: bold;
+}
+
+.price{
+    color: green;
+}
+
+.pos-change{
+	color: green;
+}
+
+.neg-change{
+	color: red;
+}

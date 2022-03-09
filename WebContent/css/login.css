@@ -1,0 +1,97 @@
+#container{
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+    margin-top: 40px;
+    display:flex;
+    
+}
+
+.box{
+    color: grey;
+    width: 50%;
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: lighter;
+    display: flex;
+    flex-direction: column;
+    margin-right: 30px;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+}
+
+label{
+    margin-bottom: 10px;
+}
+
+form button{
+    width: 100%;
+    color: white;
+    font-family: 'Ubuntu', sans-serif;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-size: 15px;
+    border: none;
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: bolder;
+    border-radius: 5px;
+}
+
+.red-button{
+    background-color: #9d2214;
+    margin-top:12px;
+	cursor:pointer;
+}
+
+#google-button{
+    background-color: #699fef;
+}
+
+.divider{
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid lightgray;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+form input[type="text"], input[type="password"], input[type="email"]{
+    width: 100%;
+    border:1px solid lightgrey;
+    margin-bottom: 10px;
+    font-size: large;
+    border-radius: 10px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus{
+    outline: none;
+    border-radius:10px;
+    box-shadow: 0 0 1pt 1pt grey;
+    
+}
+
+
+form input[type="checkbox"]{
+    vertical-align: middle;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.smalltext{
+    font-size: 12px;
+}
+
+#login-error{
+	color:red;
+	margin-top: 15px;
+}
+
+#register-error{
+	color:red;
+	margin-top: 15px;
+}

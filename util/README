@@ -1,0 +1,9 @@
+Hello!
+
+ My JDBCConnector code uses 'root' for both username and password,
+ so this project shouldn't require any configuration beyond running 
+ the A4_sql_script.sql in a new query on MySQL Workbench. Then, you should
+ be able to run the project folder on an instance of Tomcat. 
+
+Thank you.
+--Matt

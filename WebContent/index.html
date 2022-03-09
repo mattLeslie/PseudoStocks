@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Ubuntu:wght@700&display=swap" rel="stylesheet"> 
+    <link rel="stylesheet" type="text/css" href="css/base.css">
+    <link rel="stylesheet" type="text/css" href="css/home.css">
+	<script src="https://kit.fontawesome.com/bd3e3fed85.js" crossorigin="anonymous"></script>
+    <meta name="google-signin-client_id" content="969138522096-buh5tauumdphp77eq4oidus51ft0qd3o.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <title>SalStocks</title>
+</head>
+<body>
+    <span id="logo"><a id="homelink" href="index.html">PseudoStocks</a></span>
+    <div id="navbar">
+        <span class="navbar-item selected"><a href="index.html">Home/Search</a></span>
+        <span class="navbar-item notselected loggedin invis"><a href="favorites.html">Favorites</a></span>
+        <span class="navbar-item notselected loggedin invis"><a href="portfolio.html">Portfolio</a></span>
+        <span class="navbar-item notselected loggedin invis" onclick="logout();return false"><a href="#">Logout</a></span>
+        <span class="navbar-item notselected loggedout"><a href="login.html">Login/Sign Up</a></span>
+    </div>
+    <div id="container">
+    	<div id="search-prompt">
+	        <div id="title">
+	            STOCK SEARCH
+	        </div>
+	        <div id="searchbar">
+	            <form id="searchform" name="searchform" method="GET"> 
+	                <input id="search" type="text" name="ticker" placeholder="Enter stock ticker">
+	                <button id="search-button" type="submit" class="icon">
+	                    <i class="fa fa-search"></i>
+	                </button>
+	            </form>
+	        </div>
+	        <div id="error-message">
+	        
+	        </div>
+        </div>
+        <div id="search-result" >
+	        <div class="stock-info loggedout">
+	        	<div class="ticker"> </div>
+	        	<div class="co-name"> </div>
+	        	<div class="exchange"> </div>
+	        </div>
+	        
+	        <div class="stock-info loggedin">
+				<div class="detailed-info">
+					<div class="detail-row">
+						<div id="detailed-ticker" class="ticker"></div>
+						<div class="last-price"></div>
+					</div>
+					<div class="detail-row">
+						<div class="co-name"></div>
+						<div class="change"></div>
+					</div>
+					<div class="detail-row">
+						<div class="exchange"></div>
+						<div class="timestamp"></div>
+					</div>
+					
+				
+				</div>
+				<div class="buybox">
+					<div>
+						<label for="quantity">Quantity: </label>
+						<input type="text" id="quantity" name="quantity" size="3"></input>
+					</div>
+					<button type="button" class="buybutton"><a href="#">BUY</a></button>
+				</div>
+				<div>
+					<p class="market-status">
+						Market is closed		
+					</p>
+				</div>
+	        </div>
+	        
+	        <div class="divider">Summary</div>
+	        
+	        <div id="stock-details">
+	        	<div>
+		        	<p id="high">High Price: </p>
+		        	<p id="low">Low Price: </p>
+		        	<p id="open">Open Price: </p>
+		        	<p id="close">Close: </p>
+		        	<p id="volume">Volume: </p>
+		        </div>
+		        <div class="loggedin">
+		        	<p id="mid"></p>
+		        	<p id="ask"></p>
+		        	<p id="ask-size"></p>
+		        	<p id="price"></p>
+		        	<p id="bid-size"></p>
+		        </div>
+	        </div>
+	        <div id="co-desc">
+	        	<h3>Company's Description</h3>
+	        	<p id="start-date"> </p>
+	        	<p id="description"> </p>
+	        </div>
+        </div>
+     
+    </div>
+    <script>
+    
+    	let marketClosed = true;
+    	$(".buybutton").on("click", function(){
+    		
+    		if(marketClosed){
+    			alert("PURCHASE FAILED: The market is closed.")
+    		}
+    		else{
+    			let quantity = $("#quantity").val();
+    			if(quantity.indexOf('.') != -1){
+    				alert("PURCHASE FAILED: Quantity must be a whole integer without commas or periods.")
+    				return false
+    			}
+				let parsed = parseInt(quantity)
+				if(isNaN(parsed)){
+					alert("PURCHASED FAILED: Quantity must be an integer.")
+				}
+				else if(parsed <= 0){
+					alert("PURCHASE FAILED: Quantity must be a positive nonzero integer.")
+				}
+				else{
+					let ticker = $("#search").val()
+					let q = parsed
+					
+					let p = askPrice
+					if(p == 0){
+						p = price
+					}
+					
+					$.ajax({
+						method: "POST",
+						url: "TradeServlet",
+						data:{
+							ticker: ticker.toUpperCase(),
+							task: "BUY",
+							quantity: q,
+							price: p
+						},
+						error: function(error){
+							console.log(error)
+							alert("You don't have enough money for this transaction!")
+						},
+						success: function(result){
+							if(q == 1){
+								alert("SUCCESS: Executed purchase of " + q + " share of " + ticker.toUpperCase() + " for $" + (p*q))
+							}
+							else{
+								alert("SUCCESS: Executed purchase of " + q + " shares of " + ticker.toUpperCase() + " for $" + (p*q).toFixed(2))
+							}
+						}
+					})
+				}
+    		}
+    		return false;
+    	})
+    	
+    	let price = -1;
+    	let askPrice = -1;
+		
+    	function search(){
+    		let ticker = $("#search").val()
+			$.ajax({
+				method: "GET",
+				url: "SearchServlet",
+				data: {
+					task: "EOD",
+					ticker: ticker
+				},
+				
+				error: function(error){
+					$("#error-message").html("No stock found with that ticker.")
+				},
+				success: function(result){
+					if(result.length == 0){
+						$("#error-message").html("No stock found with that ticker.")
+					}
+					else{
+						$("#search-prompt").css("display", "none");
+						let data = result[0]
+							
+						$(".ticker").html(ticker.toUpperCase())
+						$("#detailed-ticker").append("<a href=\"#\" id=\"" + ticker.toUpperCase() + "\" onclick=\"toggleFavorite(this);return false\"class=\"favorite\"><a>")
+						//TODO: Check if logged in user has favorited this ticker
+						if(isFavorited(ticker.toUpperCase())){
+							$(".favorite").append(" <i class=\"fas fa-star\"></i>")
+							$(".favorite").css("color", "gold")
+							$(".favorite").addClass("toggled")
+						}
+						else{
+							$(".favorite").append(" <i class=\"far fa-star\"></i>")
+							$(".favorite").css("color", "black")
+						}
+						
+						$("#high").html("High Price: " + data.high)
+						$("#low").html("Low Price: " + data.low)
+						$("#open").html("Open: " + data.open)
+						$("#close").html("Close: " + data.close)
+						$("#volume").html("Volume: " + data.volume)
+
+						$("#search-result").css("display", "block");
+						
+					}
+				}
+			})
+			
+			$.ajax({
+				method: "GET",
+				url: "SearchServlet",
+				data: {
+					task: "DETAIL",
+					ticker: ticker
+				},
+				error: function(error){
+					$("#error-message").html("No stock found with that ticker.")
+				},
+				success: function(result){
+					if(result.length == 0){
+						$("#error-message").html("No stock found with that ticker.")
+					}
+					else{
+						$("#description").html(result.description)
+						$("#start-date").html("Start Date: " + result.startDate)
+						$(".co-name").html(result.name)
+						$(".exchange").html(result.exchangeCode)
+					}
+				}
+			})
+			
+			$.ajax({
+				method: "GET",
+				url: "SearchServlet",
+				data: {
+					task: "CURRENT",
+					ticker: ticker
+				},
+				error: function(error){
+					$("#error-message").html("No stock found with that ticker.")
+				},
+				success: function(result){
+					if(result.length == 0){
+						$("#error-message").html("No stock found with that ticker.")
+					}
+					else{
+						let data = result[0]
+						$(".last-price").html(data.last.toFixed(2))
+						price = data.last.toFixed(2)
+						let CHANGE = (data.last - data.prevClose).toFixed(2)
+						let PERCENT = (CHANGE * (100/data.prevClose)).toFixed(2)
+						$(".change").html(CHANGE + " (" + PERCENT +")%")
+						if(CHANGE < 0){
+							$(".change").css("color", "red")
+							$(".change").prepend("<i class=\"fas fa-caret-down\"></i> ");
+							$(".last-price").css("color", "red")
+						}
+						else if(CHANGE > 0){
+							$(".change").css("color", "green")
+							$(".change").prepend("<i class=\"fas fa-caret-up\"></i> ");
+							$(".last-price").css("color", "green")
+						}
+						
+						let TIMESTAMP = data.timestamp
+						let TIMESTAMP_CPY = TIMESTAMP
+						TIMESTAMP = TIMESTAMP.substring(0, 19)
+						let split = TIMESTAMP.split('T')
+						$(".timestamp").html(split[0] + " " + split[1])
+						if(marketIsOpen(TIMESTAMP_CPY)){
+							$(".market-status").html("Market is Open")
+							$(".market-status").css("background-color", "#dbecdb")
+							let mid = data.mid
+							if(mid == null){
+								mid = '-'
+							}
+							$("#mid").html("Mid Price: " + mid)
+							askPrice = data.askPrice
+							if(askPrice == 0){
+								askPrice = data.last
+							}
+							$("#ask").html("Ask Price: " + data.askPrice)
+							$("#ask-size").html("Ask Size: " + data.askSize)
+							$("#price").html("Bid Price: " + data.bidPrice)
+							$("#bid-size").html("Bid Size: " + data.bidSize)
+						}
+						else{
+							$(".market-status").html("Market Closed on " + split[0] + " " + split[1])
+							$(".market-status").css("background-color", "#f0d8d9")
+						}
+					}
+				}
+			})
+		}
+    	
+    	function marketIsOpen(timestamp){
+			let currTime = new Date();
+			let queryTime = new Date(timestamp)
+			let seconds = (currTime.getTime() - queryTime.getTime())/1000
+			
+			if(seconds <= 60){
+				marketClosed = false
+				return true;
+			}
+			marketClosed = true
+			return false;
+			
+    	}
+    
+    	$("search-button").on("click", function(event){
+    		event.preventDefault();
+    		search();
+    	})
+		$("#searchform").on("submit", function(event){
+			event.preventDefault();
+			search();
+		});
+		
+		function getCookie(username){
+			if(document.cookie.match(/^(.*;)?\s*username\s*=\s*[^;]+(.*)?$/)){
+				$(".loggedin").removeClass("invis");
+				$(".loggedout").addClass("invis");
+			}
+			else{
+				$(".loggedin").addClass("invis");
+				$(".loggedout").removeClass("invis");
+			}
+		}
+		
+		var user_favorites = []
+		
+		window.onload = function(){
+			getCookie()
+			getFavorites()
+	        gapi.load('auth2', function() {
+		          gapi.auth2.init();
+		    });
+		}
+		
+		let hasFavorites = false
+		
+		function isFavorited(ticker){
+			console.log(ticker)
+			if(hasFavorites){
+				for(let i = 0; i < user_favorites.length; i++){
+					console.log(user_favorites[i])
+					if(user_favorites[i] == ticker){
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+		
+		function toggleFavorite(star){
+			$(".favorite").empty()
+			if($(".favorite").hasClass("toggled")){
+				$(".favorite").removeClass("toggled")
+				$(".favorite").css("color", "black")
+				$(".favorite").removeAttr("checked")
+				$(".favorite").append(" <i class=\"far fa-star\"></i>")
+				removeFavorite($(".favorite").attr('id'))
+				alert("Removed from Favorites")
+			}
+			else{
+				$(".favorite").addClass("toggled")
+				$(".favorite").append(" <i class=\"fas fa-star\"></i>")
+				$(".favorite").css("color", "gold")
+				$(".favorite").attr("checked")
+				addFavorite($(".favorite").attr('id'))
+				alert("Added to Favorites")
+			}
+		}
+	    function logout(){
+			$.ajax({
+				method: "POST",
+				url: "LogoutServlet",
+				error: function(error){
+					console.log(error);
+				},
+				success: function(result){
+					getCookie()
+					signOut()
+				}
+			})
+	    }
+	    
+	    function addFavorite(ticker){
+			$.ajax({
+				method: "POST",
+				url: "FavoritesServlet",
+				data:{
+					ticker: ticker,
+					task: "ADD"
+				},
+				error: function(error){
+				},
+				success: function(result){
+					console.log("added favorite")
+				}
+			})
+	    }
+	    
+	    function getFavorites(){
+	    	$.ajax({
+	    		method:"GET",
+	    		url:"FavoritesServlet",
+	    		error: function(error){
+	    			console.log("No favorites found.")
+	    			hasFavorites = false
+	    		},
+	    		success: function(result){
+	    			console.log(result)
+	    			hasFavorites = true
+	    			user_favorites = result
+	    		}
+			})
+	    }
+	    
+	    function removeFavorite(ticker){
+	    	$.ajax({
+	    		method: "POST",
+				url: "FavoritesServlet",
+				data:{
+					ticker: ticker,
+					task: "REMOVE"
+				},
+				error: function(error){
+					console.log(error)
+				},
+				success: function(result){
+					console.log(result)
+					console.log("removed favorite")
+				}
+	    	})	
+	    }
+	    
+	    function signOut() {
+	        var auth2 = gapi.auth2.getAuthInstance();
+	        auth2.signOut().then(function () {
+	          console.log('User signed out.');
+	        });
+	      }
+
+	    
+	    
+    </script>
+</body>
+</html>

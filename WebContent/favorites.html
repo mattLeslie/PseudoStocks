@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Ubuntu:wght@700&display=swap" rel="stylesheet">   
+    <link rel="stylesheet" type="text/css" href="css/base.css">
+    <link rel="stylesheet" type="text/css" href="css/home.css">
+    <link rel="stylesheet" type="text/css" href="css/favorites.css">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<meta name="google-signin-client_id" content="969138522096-buh5tauumdphp77eq4oidus51ft0qd3o.apps.googleusercontent.com">
+	<script src="https://kit.fontawesome.com/bd3e3fed85.js" crossorigin="anonymous"></script>
+    <title>SalStocks</title>
+</head>
+<body>
+    <span id="logo"><a id="homelink" href="index.html">PseudoStocks</a></span>
+    <div id="navbar">
+        <span class="navbar-item notselected"><a href="index.html">Home/Search</a></span>
+        <span class="navbar-item selected"><a href="favorites.html">Favorites</a></span>
+        <span class="navbar-item notselected"><a href="portfolio.html">Portfolio</a></span>
+        <span class="navbar-item notselected loggedin" onclick="logout();return false"><a href="#">Logout</a></span>
+    </div>
+    <div id="container">
+        <div id="title">
+            My Favorites
+        </div>
+        <div id="favorites-box">
+
+        </div>
+        <div id="search-result" class="invis" >    
+	        <div class="stock-info loggedin">
+				<div class="detailed-info">
+					<div class="detail-row">
+						<div id="detailed-ticker" class="ticker"></div>
+						<div class="last-price"></div>
+					</div>
+					<div class="detail-row">
+						<div class="co-name"></div>
+						<div class="change"></div>
+					</div>
+					<div class="detail-row">
+						<div class="exchange"></div>
+						<div class="timestamp"></div>
+					</div>
+				</div>
+				<div class="buybox">
+					<div>
+						<label for="quantity">Quantity: </label>
+						<input type="text" id="quantity" name="quantity" size="3"></input>
+					</div>
+					<button type="button" class="buybutton"><a href="#">BUY</a></button>
+				</div>
+				<div>
+					<p class="market-status">		
+					</p>
+				</div>
+	        </div>
+	        <div class="divider">Summary</div>
+	        <div id="stock-details">
+	        	<div>
+		        	<p id="high">High Price: </p>
+		        	<p id="low">Low Price: </p>
+		        	<p id="open">Open Price: </p>
+		        	<p id="close">Close: </p>
+		        	<p id="volume">Volume: </p>
+		        </div>
+		        <div class="loggedin">
+		        	<p id="mid"></p>
+		        	<p id="ask"></p>
+		        	<p id="ask-size"></p>
+		        	<p id="price"></p>
+		        	<p id="bid-size"></p>
+		        </div>
+	        </div>
+	        <div id="co-desc">
+	        	<h3>Company's Description</h3>
+	        	<p id="start-date"> </p>
+	        	<p id="description"> </p>
+	        </div>
+	        <div id="back">
+	        	<button onclick="goBack(); return false;">Go Back</button>
+	        </div>
+        </div>
+    </div>
+    <script>
+    
+    	function goBack(){
+    		$("#search-result").css("display", "none")
+    		$("#title").css("display", "block")
+    	    $("#favorites-box").empty()	
+    		getFavorites()
+    		$("#favorites-box").css("display", "block")
+    		
+    	}
+    
+	
+	    function logout(){
+			$.ajax({
+				method: "POST",
+				url: "LogoutServlet",
+				error: function(error){
+					console.log("ERROR IN LOGOUT: " + error)
+				},
+				success: function(result){
+					signOut()
+					window.location.href="index.html"
+				}
+			})
+	    }
+	    
+	    window.onload = function(){
+	    	getFavorites()
+	        gapi.load('auth2', function() {
+		          gapi.auth2.init();
+		    });
+	    }
+
+	    
+	    function getFavorites(){
+
+	    	var basics = []
+	    	var details = []
+	    	var ajaxCounter = 0;
+			$.ajax({
+	    		method:"GET",
+	    		url:"FavoritesServlet",
+				error: function(error1){
+					alert("Currently, you don't have any favorite stocks.")
+				},
+	    		success: function(result){
+					if(result.length == 0){
+						alert("Currently, you don't have any favorite stocks.")
+					}
+					for(let i = 0; i < result.length; i++){
+						basics.push("")
+						details.push("")
+						$.ajax({
+							method: "GET",
+							url: "SearchServlet",
+							data: {
+								task: "DETAIL",
+								ticker: result[i]
+							},
+							error: function(error2){
+								console.log(error2)
+							},
+							success: function(response){
+								basics[i] = response
+								$.ajax({
+									method: "GET",
+									url: "SearchServlet",
+									data: {
+										task: "CURRENT",
+										ticker: result[i]
+									},
+									error: function(error3){
+										alert("error")
+										console.log(error3)
+									},
+									success: function(data){
+										details[i] = data[0]
+										ajaxCounter++;
+										if(ajaxCounter == result.length){
+											console.log(basics)
+											buildList(basics, details)
+										}
+									}
+								})
+							}
+						})
+					}
+	    		}
+			})
+	    }
+	    
+	    function buildList(basics, details){
+			for(let i = 0; i < basics.length; i++){
+				let fact = basics[i]
+				let data = details[i]
+				
+				let ticker = fact.ticker
+				let name = fact.name
+				let price = data.last.toFixed(2)
+				let change = (price - data.prevClose).toFixed(2)
+				let percent = (change * (100/data.prevClose)).toFixed(2)
+				let change_str = change + " (" + percent + ")%"
+				
+				var row1 = document.createElement('div');
+			    row1.className = 'row';
+			    
+			    
+				var ticker_div = document.createElement('div');
+			    ticker_div.innerHTML = ticker;
+			    ticker_div.className = 'ticker';
+			    
+			    var price_div = document.createElement('div');
+			    price_div.innerHTML = price;
+			    price_div.className = 'price';
+			    
+			    row1.appendChild(ticker_div);
+			    row1.appendChild(price_div);
+			    
+			    var row2 = document.createElement('div');
+			    row2.className = 'row';
+			    
+			    var desc_div = document.createElement('div');
+			    desc_div.innerHTML = name;
+			    desc_div.className = 'desc';
+			
+			    var change_div = document.createElement('div');
+			    if(change > 0){
+				    change_div.className = 'pos-change';
+				    price_div.className = 'price pos-change';
+				    change_str = "<i class=\"fas fa-caret-up\"></i> "+ change_str;
+			    }
+			    else{
+				    change_div.className = 'neg-change';
+				    price_div.className = 'price neg-change';
+				    change_str = "<i class=\"fas fa-caret-down\"></i> "+ change_str;
+			    }
+			    change_div.innerHTML = change_str;
+
+			    row2.appendChild(desc_div);
+			    row2.appendChild(change_div);
+			    
+			    var delete_button = document.createElement('div');
+			    delete_button.innerHTML = '<a id=\"' + ticker + '\" href="#" onclick="removeFavorite(this.id); event.stopPropagation(); return false">X</a>';
+			    delete_button.className = 'delete';
+			    
+			    var delete_holder = document.createElement('div');
+			    delete_holder.className = 'delete-holder'
+			    delete_holder.appendChild(delete_button)
+			    
+			    var info_box = document.createElement('div');
+			    info_box.className = 'info-box'
+			    info_box.appendChild(delete_holder)
+			    info_box.appendChild(row1);
+			    info_box.appendChild(row2);
+			    
+			    var dummy_link = document.createElement('a');
+			    dummy_link.setAttribute("href", "#");
+			    dummy_link.setAttribute("name", ticker);
+			    dummy_link.setAttribute("onclick", "displayDetailedPage(this.name); return false");
+			    dummy_link.append(info_box);
+			    
+			    let list = document.getElementById("favorites-box");
+			    list.appendChild(dummy_link);
+
+			}
+	    }
+  	
+	    $(".buybutton").on("click", function(){
+    		
+    		if(marketClosed){
+    			alert("PURCHASE FAILED: The market is closed.")
+    		}
+    		else{
+    			let quantity = $("#quantity").val();
+    			if(quantity.indexOf('.') != -1){
+    				alert("PURCHASE FAILED: Quantity must be a whole integer without commas or periods.")
+    				return false
+    			}
+				let parsed = parseInt(quantity)
+				if(isNaN(parsed)){
+					alert("PURCHASED FAILED: Quantity must be an integer.")
+				}
+				else if(parsed <= 0){
+					alert("PURCHASE FAILED: Quantity must be a positive nonzero integer.")
+				}
+				else{
+					let ticker = $("#search").val()
+					let q = parsed
+					
+					let p = askPrice
+					if(p == 0){
+						p = price
+					}
+					
+					$.ajax({
+						method: "POST",
+						url: "TradeServlet",
+						data:{
+							ticker: ticker.toUpperCase(),
+							task: "BUY",
+							quantity: q,
+							price: p
+						},
+						error: function(error){
+							console.log(error)
+							alert("You don't have enough money for this transaction!")
+						},
+						success: function(result){
+							if(q == 1){
+								alert("SUCCESS: Executed purchase of " + q + " share of " + ticker.toUpperCase() + " for $" + (p*q))
+							}
+							else{
+								alert("SUCCESS: Executed purchase of " + q + " shares of " + ticker.toUpperCase() + " for $" + (p*q).toFixed(2))
+							}
+						}
+					})
+				}
+    		}
+    		return false;
+    	})
+    	
+    	let price = -1;
+    	let askPrice = -1;
+	    
+	    
+	    
+	    let marketClosed = false;
+	    function displayDetailedPage(ticker){
+	    	$("#search-result").css("display", "block")
+	    	$("#favorites-box").css("display", "none")
+	    	$("#title").css("display", "none")
+	    	
+			$.ajax({
+				method: "GET",
+				url: "SearchServlet",
+				data: {
+					task: "EOD",
+					ticker: ticker
+				},
+				
+				error: function(error){
+					$("#error-message").html("No stock found with that ticker.")
+				},
+				success: function(result){
+					if(result.length == 0){
+						$("#error-message").html("No stock found with that ticker.")
+					}
+					else{
+						$("#search-prompt").css("display", "none");
+						let data = result[0]
+							
+						$(".ticker").html(ticker.toUpperCase())
+						$("#detailed-ticker").append("<a href=\"#\" id=\"" + ticker.toUpperCase() + "\" onclick=\"toggleFavorite(this);return false\"class=\"favorite\"><a>")
+						//TODO: Check if logged in user has favorited this ticker
+						$(".favorite").append(" <i class=\"fas fa-star\"></i>")
+						$(".favorite").css("color", "gold")
+						$(".favorite").addClass("toggled")
+						
+						$("#high").html("High Price: " + data.high)
+						$("#low").html("Low Price: " + data.low)
+						$("#open").html("Open: " + data.open)
+						$("#close").html("Close: " + data.close)
+						$("#volume").html("Volume: " + data.volume)
+
+						$("#search-result").css("display", "block");
+						
+					}
+				}
+			})
+			
+			$.ajax({
+				method: "GET",
+				url: "SearchServlet",
+				data: {
+					task: "DETAIL",
+					ticker: ticker
+				},
+				error: function(error){
+					$("#error-message").html("No stock found with that ticker.")
+				},
+				success: function(result){
+					if(result.length == 0){
+						$("#error-message").html("No stock found with that ticker.")
+					}
+					else{
+						$("#description").html(result.description)
+						$("#start-date").html("Start Date: " + result.startDate)
+						$(".co-name").html(result.name)
+						$(".exchange").html(result.exchangeCode)
+					}
+				}
+			})
+			
+			$.ajax({
+				method: "GET",
+				url: "SearchServlet",
+				data: {
+					task: "CURRENT",
+					ticker: ticker
+				},
+				error: function(error){
+					$("#error-message").html("No stock found with that ticker.")
+				},
+				success: function(result){
+					if(result.length == 0){
+						$("#error-message").html("No stock found with that ticker.")
+					}
+					else{
+						let data = result[0]
+						$(".last-price").html(data.last.toFixed(2))
+						price = data.last.toFixed(2)
+						let CHANGE = (data.last - data.prevClose).toFixed(2)
+						let PERCENT = (CHANGE * (100/data.prevClose)).toFixed(2)
+						$(".change").html(CHANGE + " (" + PERCENT +")%")
+						if(CHANGE < 0){
+							$(".change").css("color", "red")
+							$(".change").prepend("<i class=\"fas fa-caret-down\"></i> ");
+							$(".last-price").css("color", "red")
+						}
+						else if(CHANGE > 0){
+							$(".change").css("color", "green")
+							$(".change").prepend("<i class=\"fas fa-caret-up\"></i> ");
+							$(".last-price").css("color", "green")
+						}
+						
+						let TIMESTAMP = data.timestamp
+						let TIMESTAMP_CPY = TIMESTAMP
+						TIMESTAMP = TIMESTAMP.substring(0, 19)
+						let split = TIMESTAMP.split('T')
+						$(".timestamp").html(split[0] + " " + split[1])
+						if(marketIsOpen(TIMESTAMP_CPY)){
+							$(".market-status").html("Market is Open")
+							$(".market-status").css("background-color", "#dbecdb")
+							let mid = data.mid
+							if(mid == null){
+								mid = '-'
+							}
+							$("#mid").html("Mid Price: " + mid)
+							askPrice = data.askPrice
+							if(askPrice == 0){
+								askPrice = data.last
+							}
+							$("#ask").html("Ask Price: " + data.askPrice)
+							$("#ask-size").html("Ask Size: " + data.askSize)
+							$("#price").html("Bid Price: " + data.bidPrice)
+							$("#bid-size").html("Bid Size: " + data.bidSize)
+						}
+						else{
+							$(".market-status").html("Market Closed on " + split[0] + " " + split[1])
+							$(".market-status").css("background-color", "#f0d8d9")
+						}
+					}
+				}
+			})
+	    	
+	    }
+	    
+		function toggleFavorite(star){
+			$(".favorite").empty()
+			if($(".favorite").hasClass("toggled")){
+				$(".favorite").removeClass("toggled")
+				$(".favorite").css("color", "black")
+				$(".favorite").removeAttr("checked")
+				$(".favorite").append(" <i class=\"far fa-star\"></i>")
+				removeFavorite($(".favorite").attr('id'))
+				alert("Removed from Favorites")
+			}
+			else{
+				$(".favorite").addClass("toggled")
+				$(".favorite").append(" <i class=\"fas fa-star\"></i>")
+				$(".favorite").css("color", "gold")
+				$(".favorite").attr("checked")
+				addFavorite($(".favorite").attr('id'))
+				alert("Added to Favorites")
+			}
+		}
+	    
+	    function addFavorite(ticker){
+			$.ajax({
+				method: "POST",
+				url: "FavoritesServlet",
+				data:{
+					ticker: ticker,
+					task: "ADD"
+				},
+				error: function(error){
+				},
+				success: function(result){
+					console.log("added favorite")
+				}
+			})
+	    }
+	    
+	    function removeFavorite(ticker){
+	    	$.ajax({
+	    		method:"POST",
+	    		url:"FavoritesServlet",
+	    		data:{
+	    			task: "REMOVE",
+	    			ticker: ticker
+	    		},
+				error: function(error1){
+					console.log(error1)
+					alert("Failed to remove")
+				},
+				success: function(result){
+					$search = "#" + ticker
+					$button = $($search)
+					$box = $button.parent().parent().parent()
+					$box.fadeOut("normal", function(){
+						$box.remove()
+					})
+				}
+	    	})
+	    }
+	    
+    	
+    	function marketIsOpen(timestamp){
+			let currTime = new Date();
+			let queryTime = new Date(timestamp)
+			let seconds = (currTime.getTime() - queryTime.getTime())/1000
+			
+			if(seconds <= 60){
+				marketClosed = false
+				return true;
+			}
+			marketClosed = true
+			return false;
+			
+    	}
+    	
+	    
+	    function signOut() {
+	        var auth2 = gapi.auth2.getAuthInstance();
+	        auth2.signOut().then(function () {
+	          console.log('User signed out.');
+	        });
+	      }
+
+	    
+    </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+#title{
+    text-align: left;
+    margin-top: 22px;
+    margin-left: 20%;
+    font-size: x-large;
+    font-weight: bold;
+    font-family: 'Ubuntu', sans-serif;
+}
+
+.subtitle{
+    margin-top: 10px;
+    margin-left: 20%;
+    font-size: large;
+    font-weight: bold;
+    font-family: 'Ubuntu', sans-serif;
+    padding-left: 30px;
+}
+
+.col{
+	width: 45%;
+}
+
+#portfolio-container{
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+    margin-left: auto;
+    margin-top: 20px;
+    margin-right: auto;
+}
+
+.item{
+    width: 100%;
+    border: 1px solid grey;
+    border-radius: 5px;
+    font-family: 'Ubuntu', sans-serif;
+    margin-bottom: 12px;
+}
+
+.submitbutton{
+	width: 20%;
+	margin-left:auto;
+	margin-right:auto;
+    background-color: rgb(245, 245, 245);
+	margin-top: 10px;
+	margin-bottom: 10px;
+	border-radius: 10px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+.ticker{
+    padding: 10px;
+    font-size: x-large;
+    color: black;
+    background-color: rgb(240, 239, 239);
+}
+
+.fullname{
+    font-size: smaller;
+    color: grey;
+}
+
+.row{
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+
+
+.left{
+	text-align:left;
+	
+}
+
+.right{
+	text-align: right;
+}
+.details{
+	padding-left: 20px;
+	padding-right: 20px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	border-top: 1px solid lightgrey;
+	border-bottom: 1px solid lightgrey;
+}
+
+.info-box{
+    border: 1px solid grey;
+    display:flex;
+    flex-direction: row;
+    background-color: white;
+}
+
+.trade{
+	padding-top: 15px;
+    background-color: rgb(240, 239, 239);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}

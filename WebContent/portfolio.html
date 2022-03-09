@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300&family=Ubuntu:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/base.css">
+    <link rel="stylesheet" type="text/css" href="css/portfolio.css">
+    <script src="https://kit.fontawesome.com/bd3e3fed85.js" crossorigin="anonymous"></script>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="969138522096-buh5tauumdphp77eq4oidus51ft0qd3o.apps.googleusercontent.com">
+
+    <title>SalStocks</title>
+</head>
+<body>
+    <span id="logo"><a id="homelink" href="index.html">PseudoStocks</a></span>
+    <div id="navbar">
+        <span class="navbar-item notselected"><a href="index.html">Home/Search</a></span>
+        <span class="navbar-item notselected loggedin"><a href="favorites.html">Favorites</a></span>
+        <span class="navbar-item selected loggedin"><a href="portfolio.html">Portfolio</a></span>
+        <span class="navbar-item notselected loggedin" onclick="logout();return false"><a href="#">Logout</a></span>
+    </div>
+    <div id="title">
+        My Portfolio
+    </div>
+    <div class="subtitle" id="balance"></div>
+    <div class="subtitle" id="value"></div>
+    <div id="portfolio-container">
+		<div id="no-items"></div>
+    </div>
+    <script>
+   		let totalValue
+   		let marketClosed = true
+   		
+	    function logout(){
+			$.ajax({
+				method: "POST",
+				url: "LogoutServlet",
+				error: function(error){
+					console.log(error);
+				},
+				success: function(result){
+					signOut()
+					window.location.href="index.html"
+				}
+			})
+	    }
+	    
+	    function getCash(toggle){
+	    	$.ajax({
+	    		method: "GET",
+	    		url: "TradeServlet",
+	    		success: function(result){
+	    			$("#balance").html("Cash Balance: " + result.toFixed(2))
+	    			$("#balance").val(result.toFixed(2))
+	    			if(toggle){
+	    				totalValue = parseFloat(totalValue) + result
+	    				totalValue = totalValue.toFixed(2)
+	    				$("#value").html("Total Account Value: " + totalValue)
+	    				$("#value").val(totalValue)
+	    			}
+	    			return result
+	    		}
+	    	})
+	    }
+	    
+	    function displayTotalValue(){
+			getCash(true)
+	    }
+	    
+		window.onload = function(){
+			totalValue = 0.0
+			getCash(false)
+			getPortfolio()
+	        gapi.load('auth2', function() {
+		          gapi.auth2.init();
+		    });
+		}
+		
+	    function getPortfolio(){
+			$.ajax({
+				method: "GET",
+				url: "PortfolioServlet",
+				data:{
+					task: "PORTFOLIO"
+				},
+				error: function(error){
+					console.log(error)
+							
+				},
+				success: function(results){
+					portfolio = results;
+				}
+			}).done(function(){
+				let portfolioMap = new Map(Object.entries(portfolio))
+				if(portfolioMap.size == 0){
+					$("#no-items").css("color", "red")
+					$("#no-items").html("You currently own no stock.")
+					displayTotalValue()
+				}
+				else{
+					$("#no-items").html("")
+					constructPortfolio(portfolioMap)
+				}
+			})
+	    }
+	    
+	    function constructPortfolio(data){
+	    	let created = 0
+			for(const [t, s] of data.entries()){
+				console.log(t)
+				created++
+				let ajaxCount = 0;
+				let ticker = t
+				let quantity = s
+				let totCost 
+				let askPrice
+				let bidPrice
+				let name
+				let price
+				
+				$.ajax({
+					method:"GET",
+					url:"PortfolioServlet",
+					data:{
+						task:"TOTALCOST",
+						ticker: ticker
+					},
+					error: function(error){
+						console.log(error)
+					},
+					success: function(result){
+						totCost = result
+						ajaxCount++;
+						if(ajaxCount == 3){
+							let avgCost = totCost/quantity
+							let mktVal = price * quantity
+							let change = price - avgCost
+							constructPortfolioItem(ticker, name, quantity, totCost, avgCost, price, change, mktVal, askPrice, bidPrice)
+							created--
+						}
+						if(created == 0){
+							displayTotalValue()
+						}
+					}
+				})
+								
+				$.ajax({
+					method: "GET",
+					url: "SearchServlet",
+					data: {
+						task: "DETAIL",
+						ticker: ticker
+					},
+					error: function(error){
+						$("#error-message").html("No stock found with that ticker.")
+					},
+					success: function(result){
+						name = result.name
+						ajaxCount++;
+						if(ajaxCount == 3){
+							let avgCost = totCost/quantity
+							let mktVal = price * quantity
+							let change = price - avgCost
+							constructPortfolioItem(ticker, name, quantity, totCost, avgCost, price, change, mktVal, askPrice, bidPrice)
+						}
+						if(created == 0){
+							displayTotalValue()
+						}
+					}
+				})
+				
+				$.ajax({
+					method: "GET",
+					url: "SearchServlet",
+					data: {
+						task: "CURRENT",
+						ticker: ticker
+					},
+					error: function(error){
+						$("#error-message").html("No stock found with that ticker.")
+					},
+					success: function(result){
+						let data = result[0]
+						price = data.last
+						askPrice = data.askPrice
+						if(askPrice == 0 || askPrice == null){
+							askPrice = price
+						}
+						bidPrice = data.bidPrice
+						if(bidPrice == 0 || bidPrice == null){
+							bidPrice = price
+						}
+						marketIsOpen(data.timestamp)
+
+						ajaxCount++
+						if(ajaxCount == 3){
+							let avgCost = totCost/quantity
+							let mktVal = price * quantity
+							let change = price - avgCost
+							constructPortfolioItem(ticker, name, quantity, totCost, avgCost, price, change, mktVal, askPrice, bidPrice)
+							created--
+						}
+						if(created == 0){
+							displayTotalValue()
+						}
+					}
+				})
+			}
+	    	
+	    }
+	    
+	    function constructPortfolioItem(t, n, q, tC, aC, pr, ch, m, aP, bP){
+	    	totalValue = parseFloat(totalValue) + (q*pr)
+
+	    	var item = document.createElement('div')
+	    	item.classList.add("item")
+	  
+	    	item.append(constructTickerBox(t, n))
+	    	item.append(constructDetailsBox(t, q, tC, aC, pr, ch, m))
+	    	item.append(constructTradeBox(t, aP, bP))
+	    	
+	    	$("#portfolio-container").append(item)
+	    }
+	   
+	    
+	    function constructTickerBox(ticker, name){
+	    	var tickerBox = document.createElement('div')
+	    	tickerBox.classList.add("ticker")
+	    	tickerBox.innerHTML = ticker + " <span class=\"fullname\">"+ name + "</span>"
+	    	return tickerBox
+	    }
+	    
+	    function constructDetailsBox(t, q, tC, aC, pr, ch, m){
+	    	var detailsBox = document.createElement('div')
+	    	detailsBox.classList.add("details")
+	    	
+	    	var col1 = document.createElement('div')
+	    	col1.classList.add("col")
+	    	var rowA1 = document.createElement('div')
+	    	rowA1.classList.add("row")
+	    	var quant = document.createElement('p')
+	    	quant.innerHTML = "Quantity:"
+	    	quant.classList.add("left")
+	    	var quantVal = document.createElement('p')
+	    	quantVal.classList.add("right")
+	    	quantVal.classList.add("quantVal")
+	    	quantVal.setAttribute("value", q)
+	    	quantVal.innerHTML = q
+	    	
+	    	rowA1.append(quant)
+	    	rowA1.append(quantVal)
+	    	
+	    	
+	    	var rowA2 = document.createElement('div')
+	    	rowA2.classList.add("row")
+	    	var avgCost = document.createElement('p')
+	    	avgCost.innerHTML = "Avg. Cost/Share:"
+	    	avgCost.classList.add("left")
+	    	var avgCostVal = document.createElement('p')
+	    	avgCostVal.classList.add("right")
+	    	avgCostVal.innerHTML = aC.toFixed(2)
+	    	
+	    	rowA2.append(avgCost)
+	    	rowA2.append(avgCostVal)
+	    	
+	    	var rowA3 = document.createElement('div')
+	    	rowA3.classList.add("row")
+	    	var totCost = document.createElement('p')
+	    	totCost.innerHTML = "Total Cost:"
+	    	totCost.classList.add("left")
+	    	var totCostVal = document.createElement('p')
+	    	totCostVal.classList.add("right")
+	    	totCostVal.innerHTML = tC.toFixed(2)
+	    	
+	    	rowA3.append(totCost)
+	    	rowA3.append(totCostVal)
+	    	
+	    	col1.append(rowA1)
+	    	col1.append(rowA2)
+	    	col1.append(rowA3)
+	    	
+	    	detailsBox.append(col1)
+	    	
+	  
+	    	var col2 = document.createElement('div')
+	    	col2.classList.add("col")
+	    	
+	    	var rowB1 = document.createElement('div')
+	    	rowB1.classList.add("row")
+	    	var change = document.createElement('p')
+	    	change.innerHTML = "Change:"
+	    	change.classList.add("left")
+	    	var changeVal = document.createElement('p')
+	    	changeVal.classList.add("right")
+	    	
+	    	if(ch < 0){
+		    	changeVal.innerHTML ="<i class=\"fas fa-caret-down\"></i> " + ch.toFixed(2)
+		    	changeVal.classList.add("neg-change")
+	    	}
+	    	if(ch == 0){
+		    	changeVal.innerHTML = ch.toFixed(2)
+	    	}
+	    	if(ch > 0){
+		    	changeVal.innerHTML = "<i class=\"fas fa-caret-up\"></i> " + ch.toFixed(2)
+		    	changeVal.classList.add("pos-change")
+	    	}
+	    	
+	    	
+	    	rowB1.append(change)
+	    	rowB1.append(changeVal)
+	    	
+	    	var rowB2 = document.createElement('div')
+	    	rowB2.classList.add("row")
+	    	var currPrice = document.createElement('p')
+	    	currPrice.innerHTML = "Current Price:"
+	    	currPrice.classList.add("left")
+	    	var currPriceVal = document.createElement('p')
+	    	currPriceVal.classList.add("right")
+	    	currPriceVal.innerHTML = pr.toFixed(2)
+	    	
+	    	rowB2.append(currPrice)
+	    	rowB2.append(currPriceVal)
+	    		    	
+	    	var rowB3 = document.createElement('div')
+	    	rowB3.classList.add("row")
+	    	var market = document.createElement('p')
+	    	market.innerHTML = "Market Value:"
+	    	market.classList.add("left")
+	    	var marketVal = document.createElement('p')
+	    	marketVal.classList.add("right")
+	    	marketVal.innerHTML = m.toFixed(2)
+
+	    	rowB3.append(market)
+	    	rowB3.append(marketVal)
+	    	
+	    	col2.append(rowB1)
+	    	col2.append(rowB2)
+	    	col2.append(rowB3)
+	    	
+	    	detailsBox.append(col2)
+	    	
+	    	return detailsBox
+	    }
+	    
+	    function constructTradeBox(ticker, askPrice, bidPrice){
+	    	var tradeBox = document.createElement('div')
+	    	tradeBox.classList.add("trade")
+	    	var quantDiv = document.createElement('div')
+	    	var quantLabel = document.createElement('label')
+	    	var quantInput = document.createElement('input')
+	    		
+	    	quantInput.setAttribute("type", "text")
+	    	quantInput.setAttribute("size", "3")
+	    	quantInput.classList.add("quantity")
+	    	
+	    	quantLabel.innerHTML = "Quantity: "
+	    	quantDiv.append(quantLabel)
+	    	quantDiv.append(quantInput)
+	    	
+	    	var actionDiv = document.createElement('div')
+	    	var buyInput = document.createElement('input')
+	    	var buyLabel = document.createElement('label')
+	    	var sellInput = document.createElement('input')
+	    	var sellLabel = document.createElement('label')
+
+	    	buyInput.setAttribute("name", ticker + "-action")
+	    	buyInput.setAttribute("type", "radio")
+	    	buyInput.setAttribute("id", ticker + "-BUY")
+	    	buyInput.setAttribute("value", "BUY")
+	    	buyLabel.innerHTML = "BUY"
+		    
+		    actionDiv.append(buyLabel)
+	    	actionDiv.append(buyInput)
+		    	
+	    	sellInput.setAttribute("name", ticker + "-action")
+	    	sellInput.setAttribute("type", "radio")
+	    	sellInput.setAttribute("id", ticker + "-SELL")
+	    	sellInput.setAttribute("value", "SELL")
+	    	sellLabel.innerHTML = "SELL"
+	    	
+		    actionDiv.append(sellLabel)
+		    actionDiv.append(sellInput)
+	    	
+	    	var submit = document.createElement('button')
+	    	submit.innerHTML = "Submit"
+	    	submit.classList.add("submitbutton")
+	    	submit.setAttribute("id", ticker)
+	    	submit.setAttribute("onclick", "trade(this.parentElement.parentElement, this.id)")
+	    	
+	    	var hiddenDetails = document.createElement('div')
+	  		var ap = document.createElement('p') 
+	  		ap.setAttribute("id", ticker + "-ap")
+	  		var bp = document.createElement('p')
+	  		bp.setAttribute("id", ticker + "-bp")
+	  		ap.innerHTML = askPrice
+	  		bp.innerHTML = askPrice
+	  		hiddenDetails.append(ap)
+	  		hiddenDetails.append(bp)
+	  		hiddenDetails.style.display = "none"
+	    	
+	    	
+	    	tradeBox.append(quantDiv)
+	    	tradeBox.append(actionDiv)
+	    	tradeBox.append(submit)
+	    	tradeBox.append(hiddenDetails)
+	    	return tradeBox
+	    }
+	    
+	    function trade(item, ticker){
+	    	var info = item.children
+	    	var detailsBox = info[1]
+	    	var actionBox = info[2]
+	    	
+	    	let cash = $("#balance").val()
+	    		
+			let quantity = actionBox.querySelector('.quantity').value
+			if(!quantity || quantity.indexOf(',') != -1|| quantity.indexOf('.') != -1){
+				alert("Quantity must be a positive nonzero integer.")
+				return;
+			}
+			if(isNaN(quantity)){
+				alert("Quantity must be a positive nonzero integer.")
+				return;
+			}
+			quantity = parseInt(quantity)
+			if(quantity <= 0){
+				alert("Quantity must be a positive nonzero integer.")
+				return;
+			}
+			
+			let inputs = actionBox.querySelectorAll('input')
+			let action = "NONE"
+			for(var i = 0; i < inputs.length; i++){
+				if(inputs[i].checked){
+					action = inputs[i].value
+				}
+			}
+			if(marketClosed){
+				alert("FAILED: Market is closed.")
+				return;
+			}
+
+	    	if(action == "NONE"){
+	    		alert("Please indicate if you are buying or selling " + ticker)
+	    	}
+	    	else if(action == "BUY"){	    		
+	    		let buyPrice = actionBox.querySelector("#" + ticker + "-ap").innerHTML
+	    		let cost = buyPrice * quantity
+	    		if(cost > cash){
+	    			alert("FAILED: Purchase not possible.")
+	    			return;
+	    		}
+	    		else{
+					$.ajax({
+						method: "POST",
+						url: "TradeServlet",
+						data:{
+							ticker: ticker,
+							task: "BUY",
+							quantity: quantity,
+							price: buyPrice
+						},
+						error: function(error){
+							console.log(error)
+						},
+						success: function(result){
+							console.log(result)
+							alert(result)
+							updatePortfolio()
+						}
+					})
+	    		}
+	    		
+	    	}
+	    	else if(action == "SELL"){
+	    		let quantityBox = detailsBox.querySelector(".quantVal")
+	    		let ownedShares = quantityBox.innerHTML
+	    		
+	    		if(ownedShares < quantity){
+	    			alert("FAILED: Purchase not possible.")
+	    			return
+	    		}
+	    		else{
+		    		let sellPrice = actionBox.querySelector("#" + ticker + "-bp").innerHTML
+					$.ajax({
+						method: "POST",
+						url: "TradeServlet",
+						data:{
+							task: "SELL",
+							ticker: ticker,
+							quantity: quantity,
+							price: sellPrice
+						},
+						error: function(error){
+							console.log(error)
+						},
+						success: function(result){
+							console.log(result)
+							alert(result)
+							updatePortfolio()
+						}
+					})
+
+	    		}
+
+	    	}
+	    }
+	    
+	    function updatePortfolio(item, ticker, quantity){
+			$("#portfolio-container").empty()
+			totalValue = 0.0;
+			getPortfolio()
+	    }
+	    
+	    
+	    
+    	function marketIsOpen(timestamp){
+			let currTime = new Date();
+			let queryTime = new Date(timestamp)
+			let seconds = (currTime.getTime() - queryTime.getTime())/1000
+			
+			if(seconds <= 60){
+				marketClosed = false
+				return true;
+			}
+			marketClosed = true
+			return false;
+			
+    	}
+    	
+	    
+	    function signOut() {
+	        var auth2 = gapi.auth2.getAuthInstance();
+	        auth2.signOut().then(function () {
+	          console.log('User signed out.');
+	        });
+	      }
+
+	    
+    </script>
+</body>
+</html>
